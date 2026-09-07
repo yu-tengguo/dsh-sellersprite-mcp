@@ -1,0 +1,23 @@
+# dsh-sellersprite-mcp bundle patch — 接入卖家精灵 MCP（https://mcp.sellersprite.com/mcp）。
+#
+# 该行以 DSH 自带 MCP 客户端桥（@deepseek-ai/dsh-mcp-client，由 CLI 安装自动提供）装载一个
+# streamable-HTTP MCP 服务器实例。接入后，Agent 会看到 45+ 个原生工具，命名形如：
+#   mcp__sellersprite__asin_detail
+#   mcp__sellersprite__product_research
+#   mcp__sellersprite__competitor_lookup
+#   ...
+#
+# 密钥（secret-key）来自环境变量 SELLERSPRITE_SECRET_KEY，配置方式见 README.md：
+#   - 系统/用户环境变量，或
+#   - $DSH_HOME/.env（默认 C:\Users\<你>\.dsh\.env）里写 SELLERSPRITE_SECRET_KEY=你的密钥
+# 密钥不会写入任何 YAML/仓库文件。
+- insert:
+    - id: mcp-sellersprite
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: sellersprite
+        transport: streamable-http
+        url: https://mcp.sellersprite.com/mcp
+        headers:
+          secret-key: !!js '`${process.env.SELLERSPRITE_SECRET_KEY ?? ""}`'
+        toolCallTimeoutMs: 90000

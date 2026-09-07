@@ -1,0 +1,16 @@
+{
+  "name": "dsh-sellersprite-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SellerSprite (卖家精灵) MCP bundle for DSH web profiles: exposes mcp__sellersprite__* tools (asin_detail, product_research, keyword_miner, ...) to the agent via @deepseek-ai/dsh-mcp-client.",
+  "type": "module",
+  "license": "MIT",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web"
+    }
+  }
+}
