@@ -4,10 +4,12 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
+    "jsx": "react-jsx",
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
     "strict": true,
     "skipLibCheck": true,
     "noEmit": true,
     "types": ["node", "vitest/globals"]
   },
-  "include": ["src/index.ts", "tests/**/*.ts"]
+  "include": ["src/index.ts", "src/client/**/*.tsx", "tests/**/*.ts"]
 }

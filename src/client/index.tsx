@@ -54,12 +54,15 @@ interface CredentialsRemote {
 
 interface CardFace {
   scope: SettingsScope<SettingsValue>
-  credentials: CredentialsRemote
+  credentials?: CredentialsRemote
 }
 
 type SellerSpriteCardProps = PropsRuntime<'settings.plugin.item'> & InjectFace<CardFace>
 
-export const inject = ['slots', 'settingsScope', 'remote', 'remote.credentials']
+// `remote.credentials` is not present in every DSH host/profile. Requiring the
+// nested service here leaves the whole client plugin pending and blocks web
+// boot. The card treats it as an optional capability instead.
+export const inject = ['slots', 'settingsScope', 'remote']
 
 function draftOf(snapshot: SettingsScopeSnapshot<SettingsValue>): Draft {
   const value = snapshot.value ?? {}
@@ -113,7 +116,9 @@ function SellerSpriteSettingsCard({ scope, credentials }: SellerSpriteCardProps)
   const [draft, setDraft] = useState<Draft>(initial)
   const [baseline, setBaseline] = useState<Draft>(initial)
   const [secret, setSecret] = useState('')
-  const [credential, setCredential] = useState<CredentialView>({})
+  const [credential, setCredential] = useState<CredentialView>(credentials === undefined
+    ? { configured: false, writable: false, source: 'unavailable' }
+    : {})
   const [saving, setSaving] = useState(false)
   const [notice, setNotice] = useState('')
 
@@ -126,6 +131,10 @@ function SellerSpriteSettingsCard({ scope, credentials }: SellerSpriteCardProps)
   }, [snapshot, dirty])
 
   const refreshCredential = async (ref: string): Promise<void> => {
+    if (credentials === undefined) {
+      setCredential({ configured: false, writable: false, source: 'unavailable' })
+      return
+    }
     if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(ref)) {
       setCredential({ configured: false, writable: false })
       return
@@ -136,6 +145,10 @@ function SellerSpriteSettingsCard({ scope, credentials }: SellerSpriteCardProps)
 
   useEffect(() => {
     let alive = true
+    if (credentials === undefined) {
+      setCredential({ configured: false, writable: false, source: 'unavailable' })
+      return () => { alive = false }
+    }
     const ref = draft.secretKeyEnv
     if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(ref)) {
       setCredential({ configured: false, writable: false })
@@ -189,6 +202,7 @@ function SellerSpriteSettingsCard({ scope, credentials }: SellerSpriteCardProps)
       const ops = CONFIG_FIELDS.map((field) => ({ op: 'set' as const, path: [field], value: values[field] }))
       await scope.mutate(ops, snapshot.revision)
       if (secret.length > 0) {
+        if (credentials === undefined) throw new Error('当前 DSH 未提供凭据管理服务，请通过环境变量配置密钥。')
         const result = await credentials.set(draft.secretKeyEnv.trim(), secret)
         if (!result.ok) throw new Error(messageOf(result, '密钥保存失败。'))
       }
@@ -223,6 +237,10 @@ function SellerSpriteSettingsCard({ scope, credentials }: SellerSpriteCardProps)
   }
 
   const clearSecret = async (): Promise<void> => {
+    if (credentials === undefined) {
+      setNotice('当前 DSH 未提供凭据管理服务，请在系统环境变量中清除密钥。')
+      return
+    }
     if (!window.confirm(`确定清除 ${draft.secretKeyEnv} 中保存的密钥吗？`)) return
     setSaving(true)
     try {
@@ -253,8 +271,9 @@ function SellerSpriteSettingsCard({ scope, credentials }: SellerSpriteCardProps)
         <input type="checkbox" checked={draft.enabled} disabled={disabled} onChange={(event) => update('enabled', event.target.checked)} />
       </label>
       <Field label="SellerSprite Secret Key" hint={`密钥只写入 DSH credentials 的 ${draft.secretKeyEnv} 引用，不会写入 settings.yaml 或回显。`}>
-        <input style={styles.input} type="password" autoComplete="new-password" value={secret} disabled={saving || credential.writable === false} placeholder={credential.configured ? '已配置；留空保持不变' : '请输入卖家精灵密钥'} onChange={(event) => { setSecret(event.target.value); setNotice('') }} />
+        <input style={styles.input} type="password" autoComplete="new-password" value={secret} disabled={saving || credentials === undefined || credential.writable === false} placeholder={credentials === undefined ? '当前 DSH 不支持在界面中保存密钥' : credential.configured ? '已配置；留空保持不变' : '请输入卖家精灵密钥'} onChange={(event) => { setSecret(event.target.value); setNotice('') }} />
       </Field>
+      {credentials === undefined ? <div style={styles.status}>当前 DSH 未提供凭据管理服务。插件仍可正常加载；请将密钥写入 Windows 环境变量 <code>{draft.secretKeyEnv}</code>，然后重启 DSH。</div> : null}
       <Field label="MCP 地址" hint="卖家精灵 Streamable HTTP MCP 服务地址。">
         <input style={styles.input} value={draft.url} disabled={disabled} onChange={(event) => update('url', event.target.value)} />
       </Field>
@@ -289,6 +308,6 @@ export function apply(ctx: ClientContext): void {
   ctx.slots.inject('settings.plugin.item', () => ctx.slots.register({
     name: 'settings.plugin.item',
     key: SETTINGS_NS,
-    inject: () => ({ scope, credentials: ctx.remote.credentials as CredentialsRemote }),
+    inject: () => ({ scope, credentials: ctx.get('remote.credentials') as CredentialsRemote | undefined }),
   }, SellerSpriteSettingsCard))
 }
