@@ -25,22 +25,26 @@
 
 ## 在其他电脑上的安装步骤（每台机器一次）
 
-### 1. 拷贝或克隆插件文件夹
-
-把整个 `dsh-sellersprite-mcp` 文件夹复制到目标机器任意位置（例如 `D:\dsh-plugins\dsh-sellersprite-mcp`）。发布包必须包含 `lib/`、`package.json` 和 `cordis.patch.yml`。
-
-### 2. 用 dsh CLI 安装进 web profile
+### 1. 推荐：直接从 GitHub 安装
 
 在目标机器打开 PowerShell / 终端，执行：
 
 ```powershell
-dsh plugin --profile web add "D:\dsh-plugins\dsh-sellersprite-mcp"
+dsh plugin --profile web add "https://github.com/yu-tengguo/dsh-sellersprite-mcp.git#main"
+```
+
+仓库已提交 `lib/` 构建产物，安装时无需在插件目录运行构建或安装 npm 运行时依赖。
+
+若必须离线拷贝或本地克隆，请把插件放在实际 `$DSH_HOME/profiles/` 目录树内，再将该目录传给 `dsh plugin add`。不要 link 到 `profiles` 外的任意开发目录；DSH 对外部 link bundle 不会生成可用的模块 fallback。
+
+```powershell
+dsh plugin --profile web add "D:\path\to\DSH_HOME\profiles\plugins\dsh-sellersprite-mcp"
 ```
 
 成功后会看到 pnpm 完成安装，且 `dsh.profile.bundles` 自动加入 `dsh-sellersprite-mcp`。
 （`dsh plugin` 会在 profile 目录执行 pnpm，并把声明了 `dsh.bundle` 的包自动纳入 bundles 层。）
 
-### 3. 在插件配置中填写密钥
+### 2. 在插件配置中填写密钥
 
 启动 `dsh web`，打开「设置 → 插件 → 插件配置」，展开「卖家精灵 MCP」：
 
@@ -52,7 +56,7 @@ dsh plugin --profile web add "D:\dsh-plugins\dsh-sellersprite-mcp"
 
 也兼容旧安装方式：可以继续使用 `SELLERSPRITE_SECRET_KEY` 环境变量或 `$DSH_HOME/.env`。环境提供的密钥会被 credentials 服务视为只读，若要在 UI 中轮换，请先移除环境变量并重启 DSH。
 
-### 4. 验证工具
+### 3. 验证工具
 
 保存后新建一个会话问一句：
 
@@ -76,6 +80,7 @@ dsh plugin --profile web remove dsh-sellersprite-mcp
 
 | 现象 | 原因与处理 |
 |---|---|
+| `Cannot find package 'schemastery'` 或 `@deepseek-ai/dsh-credentials` | 正在使用旧版或 link 到 `profiles` 外的插件。卸载后从 GitHub 重新安装 `1.1.2+`；本地目录安装必须位于 `$DSH_HOME/profiles/` 下 |
 | 配置卡显示密钥未配置 | 在卡片中填写密钥并保存；若密钥来自环境变量，卡片会显示为已配置但只读 |
 | 没有 `mcp__sellersprite__*` 工具 | 检查插件是否启用、密钥是否已配置；确认 `dsh --profile web --dump-config` 中存在 `sellersprite-mcp` 行 |
 | 工具存在但调用报错/超时 | 套餐次数耗尽或限速（Basic 40 次/分钟）；或网络无法直连 `mcp.sellersprite.com` |
@@ -95,4 +100,4 @@ pnpm test
 pnpm build
 ```
 
-仓库提交 `lib/` 构建产物，以便 DSH 从本地目录安装后直接加载 Host 和 Web 两侧插件。
+仓库提交 `lib/` 构建产物，以便 DSH 安装后直接加载 Host 和 Web 两侧插件。Host 端只引用 DSH 已 vendored 的 `@deepseek-ai/*` 模块，不要求插件自带 `node_modules`。

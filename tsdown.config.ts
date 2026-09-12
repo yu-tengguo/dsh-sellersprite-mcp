@@ -16,7 +16,7 @@ const host: UserConfig = {
     '@deepseek-ai/dsh-credentials',
     '@deepseek-ai/dsh-mcp-client',
     '@deepseek-ai/dsh-settings',
-    'schemastery',
+    '@deepseek-ai/schemastery',
   ],
 }
 

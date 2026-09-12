@@ -5,7 +5,7 @@ import type {} from '@deepseek-ai/dsh-credentials'
 import * as McpClient from '@deepseek-ai/dsh-mcp-client'
 import type { SettingsNamespace } from '@deepseek-ai/dsh-settings'
 import type {} from '@deepseek-ai/dsh-settings'
-import z from 'schemastery'
+import z from '@deepseek-ai/schemastery'
 
 export const name = 'sellersprite-mcp'
 export const SELLERSPRITE_SETTINGS_NAMESPACE = 'sellersprite-mcp' as SettingsNamespace

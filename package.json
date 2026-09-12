@@ -1,6 +1,6 @@
 {
   "name": "dsh-sellersprite-mcp",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "private": true,
   "description": "Configurable SellerSprite MCP plugin for DSH web profiles.",
   "type": "module",
@@ -39,9 +39,6 @@
       "platform": "web"
     }
   },
-  "dependencies": {
-    "schemastery": "^3.18.0"
-  },
   "peerDependencies": {
     "react": "^18.2.0"
   },
@@ -55,6 +52,7 @@
     "@deepseek-ai/dsh-credentials": "^0.1.2-rc.1",
     "@deepseek-ai/dsh-mcp-client": "^0.1.2-rc.1",
     "@deepseek-ai/dsh-settings": "^0.1.2-rc.1",
+    "@deepseek-ai/schemastery": "^3.18.2",
     "@types/node": "^22.20.0",
     "@types/react": "~18.3.1",
     "react": "^18.3.1",

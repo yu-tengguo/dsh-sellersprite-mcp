@@ -1,7 +1,7 @@
 /** SellerSprite MCP connection with a live DSH settings namespace. */
 import type { Context } from '@deepseek-ai/cordis';
 import type { SettingsNamespace } from '@deepseek-ai/dsh-settings';
-import z from 'schemastery';
+import z from '@deepseek-ai/schemastery';
 export declare const name = "sellersprite-mcp";
 export declare const SELLERSPRITE_SETTINGS_NAMESPACE: SettingsNamespace;
 export declare const DEFAULT_MCP_URL = "https://mcp.sellersprite.com/mcp";
